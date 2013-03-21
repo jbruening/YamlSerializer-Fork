@@ -16,14 +16,30 @@ namespace System.Yaml.Serialization
         {
             activators.Add(typeof(T), activator);
         }
+        public void Add(Type t, Func<object> activator)
+        {
+            activators.Add(t, activator);
+        }
         public T Activate<T>() where T: class
         {
             return (T)Activate(typeof(T));
         }
         public object Activate(Type type)
         {
-            if ( !activators.ContainsKey(type) )
-                return Activator.CreateInstance(type);                              
+            if (!activators.ContainsKey(type))
+            {
+                try
+                {
+                    return Activator.CreateInstance(type);
+                }
+                catch (System.MissingMethodException ex)
+                {
+                    throw new System.MissingMethodException(
+                        string.Format(
+                            "No parameterless constructor is defined for {0}. You can fix this by adding an activator for it with YamlSerializer's AddActivator<T>(Func<object>) method",
+                            type));
+                }
+            }
             return activators[type].Invoke();
         }
     }
