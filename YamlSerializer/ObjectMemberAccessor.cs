@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace System.Yaml.Serialization
 {
@@ -20,6 +21,7 @@ namespace System.Yaml.Serialization
         /// Caches ObjectMemberAccessor instances for reuse.
         /// </summary>
         static Dictionary<Type, ObjectMemberAccessor> MemberAccessors = new Dictionary<Type, ObjectMemberAccessor>();
+
         /// <summary>
         /// 
         /// 指定した型へのアクセス方法を表すインスタンスを返す
@@ -42,13 +44,12 @@ namespace System.Yaml.Serialization
             if ( !TypeUtils.IsPublic(type) )
                 throw new ArgumentException(
                     "Can not serialize non-public type {0}.".DoFormat(type.FullName));
-            */ 
+            */
+
+            const BindingFlags propertyFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.NonPublic;
 
             // public properties
-            foreach ( var p in type.GetProperties(
-                    System.Reflection.BindingFlags.Instance | 
-                    System.Reflection.BindingFlags.Public | 
-                    System.Reflection.BindingFlags.GetProperty) ) {
+            foreach ( var p in type.GetProperties(propertyFlags) ) {
                 var prop = p; // create closures with this local variable
                 // not readable or parameters required to access the property
                 if ( !prop.CanRead || prop.GetGetMethod(false) == null || prop.GetIndexParameters().Count() != 0 )
@@ -60,15 +61,13 @@ namespace System.Yaml.Serialization
                 RegisterMember(type, prop, prop.PropertyType, get, set);
             }
 
+            const BindingFlags fieldFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetField | BindingFlags.NonPublic;
+
             // public fields
-            foreach ( var f in type.GetFields(System.Reflection.BindingFlags.Instance |
-                    System.Reflection.BindingFlags.Public |
-                    System.Reflection.BindingFlags.GetField) ) {
+            foreach ( var f in type.GetFields(fieldFlags) ) {
                 var field = f;
-                if ( !field.IsPublic )
-                    continue;
-                Func<object, object> get = obj => field.GetValue(obj);
-                Action<object, object> set = (obj, value) => field.SetValue(obj, value);
+                Func<object, object> get = field.GetValue;
+                Action<object, object> set = field.SetValue;
                 RegisterMember(type, field, field.FieldType, get, set);
             }
 
@@ -111,8 +110,11 @@ namespace System.Yaml.Serialization
                     }
         }
 
-        private void RegisterMember(Type type, System.Reflection.MemberInfo m, Type mType, Func<object, object> get, Action<object, object> set)
+        private void RegisterMember(Type type, Reflection.MemberInfo m, Type mType, Func<object, object> get, Action<object, object> set)
         {
+            if (mType.IsSubclassOf(typeof(Delegate)))
+                return;
+
             // struct that holds access method for property/field
             MemberInfo accessor = new MemberInfo();
 
@@ -127,6 +129,10 @@ namespace System.Yaml.Serialization
                 if ( mType.IsClass )
                     accessor.SerializeMethod = YamlSerializeMethod.Content;
             }
+
+            var field = m as FieldInfo;
+            var prop = m as PropertyInfo;
+
             var attr1 = m.GetAttribute<YamlSerializeAttribute>();
             if ( attr1 != null ) { // specified
                 if ( set == null ) { // read only member
@@ -137,6 +143,21 @@ namespace System.Yaml.Serialization
                 }
                 accessor.SerializeMethod = attr1.SerializeMethod;
             }
+            else
+            {
+                //if there are no attributes, and the field/property is private, internal, or protected, set it to not serialize
+                if (field != null)
+                {
+                    if (field.IsFamilyOrAssembly || field.IsPrivate)
+                        accessor.SerializeMethod = YamlSerializeMethod.Never;
+                }
+                else if (prop != null)
+                {
+                    if (accessor.Get.Method.IsFamilyOrAssembly || accessor.Get.Method.IsPrivate)
+                        accessor.SerializeMethod = YamlSerializeMethod.Never;
+                }
+            }
+
             if ( accessor.SerializeMethod == YamlSerializeMethod.Never )
                 return; // no need to register
             if ( accessor.SerializeMethod == YamlSerializeMethod.Binary ) {

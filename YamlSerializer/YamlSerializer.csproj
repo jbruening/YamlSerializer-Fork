@@ -68,6 +68,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RehashableDictionary.cs" />
+    <Compile Include="YamlNodes\YamlMapping.cs" />
+    <Compile Include="YamlNodes\YamlComplexNode.cs" />
+    <Compile Include="YamlConfig.cs" />
     <Compile Include="YamlDoubleQuoteEscaping.cs" />
     <Compile Include="EasyTypeConverter.cs" />
     <Compile Include="ObjectMemberAccessor.cs" />
@@ -81,13 +84,14 @@
     <Compile Include="YamlNode.cs" />
     <Compile Include="YamlPresenter.cs" />
     <Compile Include="YamlRepresenter.cs" />
+    <Compile Include="YamlNodes\YamlScalar.cs" />
+    <Compile Include="YamlNodes\YamlSequence.cs" />
+    <Compile Include="YamlSerializeAttribute.cs" />
+    <Compile Include="YamlSerializeMethod.cs" />
     <Compile Include="YamlSerializer.cs" />
     <Compile Include="YamlTagPrefixes.cs" />
     <Compile Include="YamlTagResolutionScheme.cs" />
     <Compile Include="YamlTagValidator.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
