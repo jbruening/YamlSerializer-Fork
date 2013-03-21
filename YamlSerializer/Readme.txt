@@ -1,11 +1,4 @@
-YamlSerializer-Fork
-===================
-
-this is a fork of http://yamlserializer.codeplex.com/
-
-Copied from codeplex:
-
-YamlSerializer 0.9.0.2 (2009-10-04)        Osamu TAKEUCHI <osamu@big.jp>
+﻿YamlSerializer 0.9.0.2 (2009-10-04)        Osamu TAKEUCHI <osamu@big.jp>
 
 Description:
 	A library that serialize / deserialize C# native objects into YAML1.2 text.
