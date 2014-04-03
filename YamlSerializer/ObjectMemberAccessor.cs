@@ -54,10 +54,8 @@ namespace System.Yaml.Serialization
                 // not readable or parameters required to access the property
                 if ( !prop.CanRead || prop.GetGetMethod(false) == null || prop.GetIndexParameters().Count() != 0 )
                     continue;
-                Func<object, object> get = obj => prop.GetValue(obj, EmptyObjectArray);
-                Action<object, object> set = null;
-                if ( prop.CanWrite && prop.GetSetMethod(false) != null )
-                    set = (obj, value) => prop.SetValue(obj, value, EmptyObjectArray);
+                Func<object, object> get = ReflectionUtils.CreateGetPropertyMethod(prop);
+                Action<object, object> set = ReflectionUtils.CreateSetPropertyMethod(prop);
                 RegisterMember(type, prop, prop.PropertyType, get, set);
             }
 
@@ -66,8 +64,8 @@ namespace System.Yaml.Serialization
             // public fields
             foreach ( var f in type.GetFields(fieldFlags) ) {
                 var field = f;
-                Func<object, object> get = field.GetValue;
-                Action<object, object> set = field.SetValue;
+                Func<object, object> get = ReflectionUtils.CreateGetFieldMethod(field);
+                Action<object, object> set = ReflectionUtils.CreateSetFieldMethod(field);
                 RegisterMember(type, field, field.FieldType, get, set);
             }
 

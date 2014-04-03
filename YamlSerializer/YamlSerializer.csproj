@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ReflectionUtils.cs" />
     <Compile Include="RehashableDictionary.cs" />
     <Compile Include="YamlNodes\YamlMapping.cs" />
     <Compile Include="YamlNodes\YamlComplexNode.cs" />
