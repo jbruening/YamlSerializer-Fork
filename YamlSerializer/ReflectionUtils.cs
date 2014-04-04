@@ -93,8 +93,11 @@ namespace System.Yaml.Serialization
             {
                 if (fieldInfo.DeclaringType.StructLayoutAttribute != null)
                 {
+#if DEBUG
                     throw new FieldAccessException(string.Format("The type '{0}' has a StructLayoutAttribute, and thus cannot have field setter for '{1}' generated. otherwise the .net framework will throw an access exception. As a fix, either create a typeconverter for the type, turn the fields into properties, or remove the structlayout attribute.", fieldInfo.DeclaringType.FullName, fieldInfo.Name));
-                    //Console.WriteLine("Using reflection to set field {1}.{0}, due to struct layout attribute being defined. Recommended to define a type converter for the type instead", fieldInfo.Name, fieldInfo.DeclaringType.Name);
+#else
+                    Console.WriteLine("Using reflection to set field {1}.{0}, due to StructLayoutAttribute being defined. Recommended to define a type converter for the type instead.", fieldInfo.Name, fieldInfo.DeclaringType.Name);
+#endif
                     
                     //fffffff. this has to be done via reflection, otherwise we're gonna get field access exceptions that will crash the program.
                     return new Action<object, object>((targ, value) => fieldInfo.SetValue(targ, value));
