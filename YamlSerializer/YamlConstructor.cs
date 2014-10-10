@@ -114,6 +114,8 @@ namespace System.Yaml.Serialization
             Type fromTag = TagResolver.TypeFromTag(node.Tag);
             if ( fromTag == null )
                 fromTag = TypeFromTag(node.Tag);
+            if (fromTag == null && expected != null)
+                config.OnTypeResolutionError(expected, node.Tag);
             if ( fromTag != null && type != fromTag && fromTag.IsClass && fromTag != typeof(string) )
                 type = fromTag;
             if ( type == null )

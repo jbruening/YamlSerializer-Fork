@@ -436,5 +436,19 @@ namespace System.Yaml
 
         internal System.Yaml.Serialization.EasyTypeConverter TypeConverter =
             new System.Yaml.Serialization.EasyTypeConverter();
+
+        /// <summary>
+        /// Raised when a type is expected, but cannot be found from the specified string type
+        /// </summary>
+        public event Action<YamlConfig, Type, string> TypeResolutionError;
+
+        internal void OnTypeResolutionError(Type expected, string typeTag)
+        {
+            var ev = TypeResolutionError;
+            if (ev != null)
+            {
+                ev(this, expected, typeTag);
+            }
+        }
     }
 }
